@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
-import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
+import { createErrorEmbed } from '../utils/embeds';
 
 export const stopCommand: Command = {
   name: 'stop',

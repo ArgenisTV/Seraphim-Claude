@@ -26,10 +26,12 @@ export function interactionCreateEvent(client: SeraphimClient): void {
 
       const errorMessage = { content: 'An error occurred while processing your request.', ephemeral: true };
 
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(errorMessage);
-      } else {
-        await interaction.reply(errorMessage);
+      if (interaction.isRepliable()) {
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(errorMessage);
+        } else {
+          await interaction.reply(errorMessage);
+        }
       }
     }
   });

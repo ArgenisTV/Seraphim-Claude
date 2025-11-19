@@ -15,7 +15,7 @@ export async function updateNowPlayingMessage(
 ): Promise<void> {
   const channel = client.channels.cache.get(player.textChannel!);
 
-  if (!channel?.isTextBased()) {
+  if (!channel || !('send' in channel)) {
     return;
   }
 

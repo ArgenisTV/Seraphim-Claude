@@ -42,7 +42,7 @@ export function lavalinkEvents(client: SeraphimClient): void {
   });
 
   // Track error
-  client.music.on('trackError', (player: Player, track: Track, data: TrackExceptionEvent) => {
+  client.music.on('trackException', (player: Player, track: Track, data: TrackExceptionEvent) => {
     logger.error(`Track error: ${track.title} in guild ${player.guild}`, data);
     player.stop(); // Skip to next track
   });
@@ -52,7 +52,7 @@ export function lavalinkEvents(client: SeraphimClient): void {
     logger.info(`Queue ended in guild ${player.guild}`);
 
     const channel = client.channels.cache.get(player.textChannel!);
-    if (channel?.isTextBased()) {
+    if (channel && 'send' in channel) {
       channel.send('*The celestial harmonies have ceased... Summon more vibrations with `/play`.*');
     }
 
@@ -60,7 +60,7 @@ export function lavalinkEvents(client: SeraphimClient): void {
     setTimeout(() => {
       if (player.queue.size === 0 && !player.playing) {
         const disconnectChannel = client.channels.cache.get(player.textChannel!);
-        if (disconnectChannel?.isTextBased()) {
+        if (disconnectChannel && 'send' in disconnectChannel) {
           disconnectChannel.send('**Cosmical vibrations\' resonance attenuated...**');
         }
         player.destroy();
