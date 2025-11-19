@@ -11,7 +11,7 @@ export const shuffleCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -22,7 +22,7 @@ export const shuffleCommand: Command = {
 
     if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
       await interaction.reply({
-        embeds: [createErrorEmbed('You must be in the same voice channel as the bot.')],
+        embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
       });
       return;
@@ -30,7 +30,7 @@ export const shuffleCommand: Command = {
 
     if (player.queue.size === 0) {
       await interaction.reply({
-        embeds: [createErrorEmbed('The queue is empty.')],
+        embeds: [createErrorEmbed('The celestial queue lays barren.')],
         ephemeral: true,
       });
       return;
@@ -39,7 +39,7 @@ export const shuffleCommand: Command = {
     player.queue.shuffle();
 
     await interaction.reply({
-      embeds: [createSuccessEmbed(`🔀 Shuffled **${player.queue.size}** tracks`)],
+      embeds: [createSuccessEmbed(`🔀 The cosmic order has been rearranged... ${player.queue.size} harmonies shall flow in divine chaos.`)],
     });
   },
 };

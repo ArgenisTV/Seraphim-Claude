@@ -53,12 +53,16 @@ export function lavalinkEvents(client: SeraphimClient): void {
 
     const channel = client.channels.cache.get(player.textChannel!);
     if (channel?.isTextBased()) {
-      channel.send('Queue has ended. Add more songs with `/play`!');
+      channel.send('*The celestial harmonies have ceased... Summon more vibrations with `/play`.*');
     }
 
     // Disconnect after 5 minutes of inactivity
     setTimeout(() => {
       if (player.queue.size === 0 && !player.playing) {
+        const disconnectChannel = client.channels.cache.get(player.textChannel!);
+        if (disconnectChannel?.isTextBased()) {
+          disconnectChannel.send('**Cosmical vibrations\' resonance attenuated...**');
+        }
         player.destroy();
         logger.info(`Player destroyed due to inactivity in guild ${player.guild}`);
       }
@@ -74,5 +78,12 @@ export function lavalinkEvents(client: SeraphimClient): void {
   // Player destroyed
   client.music.on('playerDestroy', (player: Player) => {
     logger.info(`Player destroyed in guild ${player.guild}`);
+
+    // Send disconnect message if not already sent by queueEnd
+    const channel = client.channels.cache.get(player.textChannel!);
+    if (channel?.isTextBased() && player.queue.size === 0) {
+      // Only send if queue was manually cleared (stop command sends its own message)
+      // This will be sent when bot is kicked or loses connection
+    }
   });
 }

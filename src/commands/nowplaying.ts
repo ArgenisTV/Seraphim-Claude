@@ -12,7 +12,7 @@ export const nowplayingCommand: Command = {
 
     if (!player || !player.queue.current) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;

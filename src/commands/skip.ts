@@ -11,7 +11,7 @@ export const skipCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -22,7 +22,7 @@ export const skipCommand: Command = {
 
     if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
       await interaction.reply({
-        embeds: [createErrorEmbed('You must be in the same voice channel as the bot.')],
+        embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
       });
       return;
@@ -30,7 +30,7 @@ export const skipCommand: Command = {
 
     if (player.queue.size === 0) {
       await interaction.reply({
-        embeds: [createErrorEmbed('There are no more tracks in the queue.')],
+        embeds: [createErrorEmbed('No further vibrations await in the celestial queue.')],
         ephemeral: true,
       });
       return;
@@ -40,7 +40,7 @@ export const skipCommand: Command = {
     player.stop();
 
     await interaction.reply({
-      embeds: [createSuccessEmbed(`⏭️ Skipped **${currentTrack?.title}**`)],
+      embeds: [createSuccessEmbed(`⏭️ Transcending to the next harmony...`)],
     });
   },
 };

@@ -11,7 +11,7 @@ export async function handleButtonInteraction(
 
   if (!player) {
     await interaction.reply({
-      embeds: [createErrorEmbed('No music is currently playing.')],
+      embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
       ephemeral: true,
     });
     return;
@@ -23,7 +23,7 @@ export async function handleButtonInteraction(
 
   if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
     await interaction.reply({
-      embeds: [createErrorEmbed('You must be in the same voice channel as the bot to use controls.')],
+      embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim to command the divine controls.')],
       ephemeral: true,
     });
     return;
@@ -34,7 +34,7 @@ export async function handleButtonInteraction(
       case 'music_previous':
         if (!player.queue.previous) {
           await interaction.reply({
-            embeds: [createErrorEmbed('There is no previous track.')],
+            embeds: [createErrorEmbed('No echoes of past vibrations remain.')],
             ephemeral: true,
           });
           return;
@@ -42,7 +42,7 @@ export async function handleButtonInteraction(
         player.queue.unshift(player.queue.previous);
         player.stop();
         await interaction.reply({
-          content: '⏮️ Playing previous track...',
+          content: '⏮️ *Returning to the echoes of the past...*',
           ephemeral: true,
         });
         break;
@@ -51,13 +51,13 @@ export async function handleButtonInteraction(
         if (player.paused) {
           player.pause(false);
           await interaction.reply({
-            content: '▶️ Resumed playback',
+            content: '▶️ *The harmonies flow anew!*',
             ephemeral: true,
           });
         } else {
           player.pause(true);
           await interaction.reply({
-            content: '⏸️ Paused playback',
+            content: '⏸️ *The vibrations rest...*',
             ephemeral: true,
           });
         }
@@ -66,14 +66,14 @@ export async function handleButtonInteraction(
       case 'music_skip':
         if (player.queue.size === 0) {
           await interaction.reply({
-            embeds: [createErrorEmbed('There are no more tracks in the queue.')],
+            embeds: [createErrorEmbed('No further vibrations await in the celestial queue.')],
             ephemeral: true,
           });
           return;
         }
         player.stop();
         await interaction.reply({
-          content: '⏭️ Skipped to next track',
+          content: '⏭️ *Transcending to the next harmony...*',
           ephemeral: true,
         });
         break;
@@ -81,14 +81,14 @@ export async function handleButtonInteraction(
       case 'music_shuffle':
         if (player.queue.size === 0) {
           await interaction.reply({
-            embeds: [createErrorEmbed('The queue is empty.')],
+            embeds: [createErrorEmbed('The celestial queue lays barren.')],
             ephemeral: true,
           });
           return;
         }
         player.queue.shuffle();
         await interaction.reply({
-          content: '🔀 Queue shuffled',
+          content: '🔀 *The cosmic order has been rearranged...*',
           ephemeral: true,
         });
         break;
@@ -98,7 +98,7 @@ export async function handleButtonInteraction(
         player.stop();
         player.destroy();
         await interaction.reply({
-          content: '⏹️ Stopped playback and cleared queue',
+          content: '*Slumbers...*',
           ephemeral: true,
         });
         break;
@@ -109,7 +109,7 @@ export async function handleButtonInteraction(
   } catch (error) {
     logger.error('Error in button handler:', error);
     await interaction.reply({
-      embeds: [createErrorEmbed('An error occurred while processing your request.')],
+      embeds: [createErrorEmbed('The cosmic forces have disrupted thy command.')],
       ephemeral: true,
     });
   }

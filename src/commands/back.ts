@@ -11,7 +11,7 @@ export const backCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -22,7 +22,7 @@ export const backCommand: Command = {
 
     if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
       await interaction.reply({
-        embeds: [createErrorEmbed('You must be in the same voice channel as the bot.')],
+        embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
       });
       return;
@@ -30,7 +30,7 @@ export const backCommand: Command = {
 
     if (!player.queue.previous) {
       await interaction.reply({
-        embeds: [createErrorEmbed('There is no previous track.')],
+        embeds: [createErrorEmbed('No echoes of past vibrations remain.')],
         ephemeral: true,
       });
       return;
@@ -40,7 +40,7 @@ export const backCommand: Command = {
     player.stop();
 
     await interaction.reply({
-      embeds: [createSuccessEmbed('⏮️ Playing previous track...')],
+      embeds: [createSuccessEmbed('⏮️ Returning to the echoes of the past...')],
     });
   },
 };

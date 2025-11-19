@@ -4,13 +4,13 @@ import { QueueTrack } from '../types/QueueTrack';
 
 export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
   return new EmbedBuilder()
-    .setColor(0x5865F2)
-    .setTitle('🎵 Now Playing')
+    .setColor(0xFFD700)
+    .setTitle('✧ Resonating with Cosmic Vibrations')
     .setDescription(`**[${track.title}](${track.uri})**`)
     .addFields(
-      { name: 'Artist', value: track.author || 'Unknown', inline: true },
+      { name: 'Divine Creator', value: track.author || 'Unknown', inline: true },
       { name: 'Duration', value: formatDuration(track.duration), inline: true },
-      { name: 'Requested by', value: track.requester.toString(), inline: true }
+      { name: 'Summoned by', value: track.requester.toString(), inline: true }
     )
     .setThumbnail(track.thumbnail || null)
     .setTimestamp();
@@ -18,9 +18,9 @@ export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
 
 export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack): EmbedBuilder {
   const embed = new EmbedBuilder()
-    .setColor(0x5865F2)
-    .setTitle('📜 Music Queue')
-    .setDescription(`**Now Playing:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Up Next:**`)
+    .setColor(0xFFD700)
+    .setTitle('✧ The Celestial Harmonies Await')
+    .setDescription(`**Current Resonance:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Forthcoming Vibrations:**`)
     .setTimestamp();
 
   const upNext = queue.slice(0, 10).map((track, index) =>
@@ -29,12 +29,12 @@ export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack):
 
   if (upNext) {
     embed.setDescription(
-      `**Now Playing:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Up Next:**\n${upNext}`
+      `**Current Resonance:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Forthcoming Vibrations:**\n${upNext}`
     );
   }
 
   if (queue.length > 10) {
-    embed.setFooter({ text: `And ${queue.length - 10} more tracks...` });
+    embed.setFooter({ text: `And ${queue.length - 10} more harmonies await...` });
   }
 
   return embed;
@@ -42,16 +42,16 @@ export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack):
 
 export function createErrorEmbed(message: string): EmbedBuilder {
   return new EmbedBuilder()
-    .setColor(0xED4245)
-    .setTitle('❌ Error')
+    .setColor(0x8B0000)
+    .setTitle('⚠ The Divine Frequencies Falter')
     .setDescription(message)
     .setTimestamp();
 }
 
 export function createSuccessEmbed(message: string): EmbedBuilder {
   return new EmbedBuilder()
-    .setColor(0x57F287)
-    .setTitle('✅ Success')
+    .setColor(0xFFD700)
+    .setTitle('✧ Thy Request... is Worthy!')
     .setDescription(message)
     .setTimestamp();
 }

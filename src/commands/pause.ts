@@ -11,7 +11,7 @@ export const pauseCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -22,7 +22,7 @@ export const pauseCommand: Command = {
 
     if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
       await interaction.reply({
-        embeds: [createErrorEmbed('You must be in the same voice channel as the bot.')],
+        embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
       });
       return;
@@ -32,7 +32,7 @@ export const pauseCommand: Command = {
 
     await interaction.reply({
       embeds: [
-        createSuccessEmbed(player.paused ? '⏸️ Paused playback' : '▶️ Resumed playback'),
+        createSuccessEmbed(player.paused ? '⏸️ The vibrations rest...' : '▶️ The harmonies flow anew!'),
       ],
     });
   },

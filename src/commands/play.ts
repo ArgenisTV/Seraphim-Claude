@@ -24,7 +24,7 @@ export const playCommand: Command = {
 
     if (!voiceChannel) {
       await interaction.editReply({
-        embeds: [createErrorEmbed('You must be in a voice channel to play music!')],
+        embeds: [createErrorEmbed('Thou must dwell within a voice channel to summon the celestial harmonies.')],
       });
       return;
     }
@@ -45,7 +45,7 @@ export const playCommand: Command = {
 
       if (res.loadType === 'error' || res.loadType === 'empty') {
         await interaction.editReply({
-          embeds: [createErrorEmbed('No results found for your query.')],
+          embeds: [createErrorEmbed('The ethereal realm yielded no resonance for thy seeking.')],
         });
         return;
       }
@@ -60,8 +60,14 @@ export const playCommand: Command = {
       });
 
       // Connect to voice channel if not connected
-      if (player.state !== 'CONNECTED') {
+      const isFirstJoin = player.state !== 'CONNECTED';
+      if (isFirstJoin) {
         player.connect();
+        // Send join message to text channel
+        const channel = await client.channels.fetch(interaction.channelId);
+        if (channel?.isTextBased()) {
+          await channel.send('**Heed Seraphim! Be not afraid!**');
+        }
       }
 
       // Handle playlist vs single track
@@ -75,7 +81,7 @@ export const playCommand: Command = {
         await interaction.editReply({
           embeds: [
             createSuccessEmbed(
-              `Added playlist **${res.playlist?.name}** with **${res.tracks.length}** tracks to the queue.`
+              `Attuning to playlist **${res.playlist?.name}** - ${res.tracks.length} harmonies shall resonate through the cosmos.`
             ),
           ],
         });
@@ -87,11 +93,11 @@ export const playCommand: Command = {
 
         if (!player.playing && !player.paused) {
           await interaction.editReply({
-            embeds: [createSuccessEmbed(`Now playing **${track.title}**`)],
+            embeds: [createSuccessEmbed(`Attuning to: **${track.title}**`)],
           });
         } else {
           await interaction.editReply({
-            embeds: [createSuccessEmbed(`Added **${track.title}** to the queue.`)],
+            embeds: [createSuccessEmbed(`Attuning to: **${track.title}**\n*This harmony shall join the celestial queue.*`)],
           });
         }
       }
@@ -103,7 +109,7 @@ export const playCommand: Command = {
     } catch (error) {
       logger.error('Error in play command:', error);
       await interaction.editReply({
-        embeds: [createErrorEmbed('An error occurred while trying to play that track.')],
+        embeds: [createErrorEmbed('The cosmic forces have disrupted the resonance. Seek thy harmony anew.')],
       });
     }
   },

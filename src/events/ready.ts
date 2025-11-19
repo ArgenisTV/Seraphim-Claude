@@ -8,7 +8,7 @@ export function readyEvent(client: SeraphimClient): void {
 
     // Set bot status
     client.user?.setPresence({
-      activities: [{ name: 'music | /play', type: 2 }], // Type 2 = Listening
+      activities: [{ name: 'cosmic vibrations | /play', type: 2 }], // Type 2 = Listening
       status: 'online',
     });
   });

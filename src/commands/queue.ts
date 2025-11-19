@@ -12,7 +12,7 @@ export const queueCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -20,7 +20,7 @@ export const queueCommand: Command = {
 
     if (!player.queue.current) {
       await interaction.reply({
-        embeds: [createErrorEmbed('The queue is empty.')],
+        embeds: [createErrorEmbed('The celestial queue lays barren.')],
         ephemeral: true,
       });
       return;

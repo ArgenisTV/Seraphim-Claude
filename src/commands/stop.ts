@@ -11,7 +11,7 @@ export const stopCommand: Command = {
 
     if (!player) {
       await interaction.reply({
-        embeds: [createErrorEmbed('No music is currently playing.')],
+        embeds: [createErrorEmbed('No celestial harmonies resonate at this moment.')],
         ephemeral: true,
       });
       return;
@@ -22,7 +22,7 @@ export const stopCommand: Command = {
 
     if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
       await interaction.reply({
-        embeds: [createErrorEmbed('You must be in the same voice channel as the bot.')],
+        embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
       });
       return;
@@ -33,7 +33,7 @@ export const stopCommand: Command = {
     player.destroy();
 
     await interaction.reply({
-      embeds: [createSuccessEmbed('⏹️ Stopped playback and cleared the queue')],
+      content: '*Slumbers...*',
     });
   },
 };
