@@ -35,13 +35,8 @@ export const playCommand: Command = {
       // Search for tracks
       let res: SearchResult;
 
-      if (query.match(/^https?:\/\//)) {
-        // It's a URL
-        res = await client.music.search(query, interaction.user);
-      } else {
-        // It's a search query
-        res = await client.music.search(`ytsearch:${query}`, interaction.user);
-      }
+      // erela.js handles the ytsearch: prefix automatically, just pass the query
+      res = await client.music.search(query, interaction.user);
 
       if (res.loadType === 'LOAD_FAILED' || res.loadType === 'NO_MATCHES') {
         await interaction.editReply({
