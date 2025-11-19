@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Lavalink - Audio processing server
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: seraphim-lavalink
+    restart: unless-stopped
+    environment:
+      - _JAVA_OPTIONS=-Xmx2G
+      - SERVER_PORT=2333
+      - LAVALINK_SERVER_PASSWORD=youshallnotpass
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - ./lavalink/plugins:/opt/Lavalink/plugins
+    networks:
+      - seraphim-network
+    expose:
+      - 2333
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2333/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Discord Music Bot
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seraphim-bot
+    restart: unless-stopped
+    depends_on:
+      lavalink:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - seraphim-network
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  seraphim-network:
+    driver: bridge

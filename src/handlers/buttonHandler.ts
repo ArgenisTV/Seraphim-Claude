@@ -1,0 +1,116 @@
+import { ButtonInteraction } from 'discord.js';
+import { SeraphimClient } from '../client/SeraphimClient';
+import { createErrorEmbed } from '../utils/embeds';
+import { logger } from '../utils/logger';
+
+export async function handleButtonInteraction(
+  client: SeraphimClient,
+  interaction: ButtonInteraction
+): Promise<void> {
+  const player = client.music.players.get(interaction.guildId!);
+
+  if (!player) {
+    await interaction.reply({
+      embeds: [createErrorEmbed('No music is currently playing.')],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  // Check if user is in the same voice channel
+  const member = interaction.guild?.members.cache.get(interaction.user.id);
+  const voiceChannel = member?.voice.channel;
+
+  if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    await interaction.reply({
+      embeds: [createErrorEmbed('You must be in the same voice channel as the bot to use controls.')],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  try {
+    switch (interaction.customId) {
+      case 'music_previous':
+        if (!player.queue.previous) {
+          await interaction.reply({
+            embeds: [createErrorEmbed('There is no previous track.')],
+            ephemeral: true,
+          });
+          return;
+        }
+        player.queue.unshift(player.queue.previous);
+        player.stop();
+        await interaction.reply({
+          content: '⏮️ Playing previous track...',
+          ephemeral: true,
+        });
+        break;
+
+      case 'music_pause':
+        if (player.paused) {
+          player.pause(false);
+          await interaction.reply({
+            content: '▶️ Resumed playback',
+            ephemeral: true,
+          });
+        } else {
+          player.pause(true);
+          await interaction.reply({
+            content: '⏸️ Paused playback',
+            ephemeral: true,
+          });
+        }
+        break;
+
+      case 'music_skip':
+        if (player.queue.size === 0) {
+          await interaction.reply({
+            embeds: [createErrorEmbed('There are no more tracks in the queue.')],
+            ephemeral: true,
+          });
+          return;
+        }
+        player.stop();
+        await interaction.reply({
+          content: '⏭️ Skipped to next track',
+          ephemeral: true,
+        });
+        break;
+
+      case 'music_shuffle':
+        if (player.queue.size === 0) {
+          await interaction.reply({
+            embeds: [createErrorEmbed('The queue is empty.')],
+            ephemeral: true,
+          });
+          return;
+        }
+        player.queue.shuffle();
+        await interaction.reply({
+          content: '🔀 Queue shuffled',
+          ephemeral: true,
+        });
+        break;
+
+      case 'music_stop':
+        player.queue.clear();
+        player.stop();
+        player.destroy();
+        await interaction.reply({
+          content: '⏹️ Stopped playback and cleared queue',
+          ephemeral: true,
+        });
+        break;
+
+      default:
+        logger.warn(`Unknown button interaction: ${interaction.customId}`);
+    }
+  } catch (error) {
+    logger.error('Error in button handler:', error);
+    await interaction.reply({
+      embeds: [createErrorEmbed('An error occurred while processing your request.')],
+      ephemeral: true,
+    });
+  }
+}
