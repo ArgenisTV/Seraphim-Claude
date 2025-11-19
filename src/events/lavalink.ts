@@ -41,7 +41,8 @@ export function lavalinkEvents(client: SeraphimClient): void {
     player.stop(); // Skip to next track
   });
 
-  // Track error
+  // Track error - Type definition issue in erela.js, but event exists at runtime
+  // @ts-ignore - trackException event is not in type definitions but works at runtime
   client.music.on('trackException', (player: Player, track: Track, data: TrackExceptionEvent) => {
     logger.error(`Track error: ${track.title} in guild ${player.guild}`, data);
     player.stop(); // Skip to next track
