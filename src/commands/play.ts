@@ -43,7 +43,7 @@ export const playCommand: Command = {
         res = await client.music.search(`ytsearch:${query}`, interaction.user);
       }
 
-      if (res.loadType === 'error' || res.loadType === 'empty') {
+      if (res.loadType === 'LOAD_FAILED' || res.loadType === 'NO_MATCHES') {
         await interaction.editReply({
           embeds: [createErrorEmbed('The ethereal realm yielded no resonance for thy seeking.')],
         });
@@ -65,13 +65,13 @@ export const playCommand: Command = {
         player.connect();
         // Send join message to text channel
         const channel = await client.channels.fetch(interaction.channelId);
-        if (channel?.isTextBased()) {
+        if (channel && 'send' in channel) {
           await channel.send('**Heed Seraphim! Be not afraid!**');
         }
       }
 
       // Handle playlist vs single track
-      if (res.loadType === 'playlist') {
+      if (res.loadType === 'PLAYLIST_LOADED') {
         // Add all tracks to queue
         for (const track of res.tracks) {
           (track as any).requester = interaction.user;

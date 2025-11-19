@@ -36,7 +36,6 @@ export const skipCommand: Command = {
       return;
     }
 
-    const currentTrack = player.queue.current;
     player.stop();
 
     await interaction.reply({

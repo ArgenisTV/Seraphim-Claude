@@ -135,7 +135,8 @@ export class SeraphimClient extends Client {
 
   public async shutdown(): Promise<void> {
     logger.info('Shutting down...');
-    this.music.destroy();
+    // Destroy all players
+    this.music.players.forEach(player => player.destroy());
     await this.destroy();
     logger.info('Shutdown complete');
   }

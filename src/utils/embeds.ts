@@ -1,5 +1,4 @@
 import { EmbedBuilder } from 'discord.js';
-import { Track } from 'erela.js';
 import { QueueTrack } from '../types/QueueTrack';
 
 export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
