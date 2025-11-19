@@ -6,8 +6,7 @@ import {
   Routes,
   SlashCommandBuilder,
 } from 'discord.js';
-import { Manager } from 'erela.js';
-import Spotify from 'erela.js-spotify';
+import { LavalinkManager } from 'lavalink-client';
 import { Command } from '../types/Command';
 import { logger } from '../utils/logger';
 import { registerEvents } from '../events';
@@ -15,7 +14,7 @@ import { registerCommands } from '../commands';
 
 export class SeraphimClient extends Client {
   public commands: Collection<string, Command>;
-  public music: Manager;
+  public music: LavalinkManager;
 
   constructor() {
     super({
@@ -30,43 +29,41 @@ export class SeraphimClient extends Client {
     this.music = this.createMusicManager();
   }
 
-  private createMusicManager(): Manager {
-    const nodes = [
-      {
-        host: process.env.LAVALINK_HOST || 'lavalink',
-        port: parseInt(process.env.LAVALINK_PORT || '2333'),
-        password: process.env.LAVALINK_PASSWORD || 'youshallnotpass',
-        retryAmount: 5,
-        retryDelay: 3000,
-        secure: false,
-      },
-    ];
-
-    const plugins = [];
-
-    // Add Spotify plugin if credentials are provided
-    if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
-      plugins.push(
-        new Spotify({
-          clientID: process.env.SPOTIFY_CLIENT_ID,
-          clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-          convertUnresolved: true,
-          playlistLimit: 100,
-          albumLimit: 100,
-        })
-      );
-      logger.info('Spotify support enabled');
-    }
-
-    return new Manager({
-      nodes,
-      plugins,
-      send: (id, payload) => {
-        const guild = this.guilds.cache.get(id);
+  private createMusicManager(): LavalinkManager {
+    return new LavalinkManager({
+      nodes: [
+        {
+          authorization: process.env.LAVALINK_PASSWORD || 'youshallnotpass',
+          host: process.env.LAVALINK_HOST || 'lavalink',
+          port: parseInt(process.env.LAVALINK_PORT || '2333'),
+          id: 'seraphim-node',
+          retryAmount: 5,
+          retryDelay: 3000,
+          secure: false,
+        },
+      ],
+      sendToShard: (guildId, payload) => {
+        const guild = this.guilds.cache.get(guildId);
         if (guild) guild.shard.send(payload);
       },
-      autoPlay: true,
-      clientName: 'Seraphim/1.0',
+      client: {
+        id: process.env.CLIENT_ID!,
+        username: 'Seraphim',
+      },
+      autoSkip: true,
+      playerOptions: {
+        clientBasedPositionUpdateInterval: 150,
+        defaultSearchPlatform: 'ytsearch',
+        volumeDecrementer: 0.75,
+        onDisconnect: {
+          autoReconnect: true,
+          destroyPlayer: false,
+        },
+        onEmptyQueue: {
+          destroyAfterMs: 300000, // 5 minutes
+        },
+        useUnresolvedData: true,
+      },
     });
   }
 
@@ -88,8 +85,11 @@ export class SeraphimClient extends Client {
       // Login to Discord
       await this.login(process.env.DISCORD_TOKEN);
 
-      // Initialize music manager after login
-      this.music.init(this.user!.id);
+      // Initialize music manager after login with full user object
+      this.music.init({
+        id: this.user!.id,
+        username: this.user!.username,
+      });
       logger.info('Lavalink connection initialized');
     } catch (error) {
       logger.error('Failed to start bot:', error);

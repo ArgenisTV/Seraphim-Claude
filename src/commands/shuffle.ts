@@ -20,7 +20,7 @@ export const shuffleCommand: Command = {
     const member = interaction.member as GuildMember;
     const voiceChannel = member.voice.channel;
 
-    if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
       await interaction.reply({
         embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
@@ -28,7 +28,7 @@ export const shuffleCommand: Command = {
       return;
     }
 
-    if (player.queue.size === 0) {
+    if (player.queue.tracks.length === 0) {
       await interaction.reply({
         embeds: [createErrorEmbed('The celestial queue lays barren.')],
         ephemeral: true,
@@ -39,7 +39,11 @@ export const shuffleCommand: Command = {
     player.queue.shuffle();
 
     await interaction.reply({
-      embeds: [createSuccessEmbed(`🔀 The cosmic order has been rearranged... ${player.queue.size} harmonies shall flow in divine chaos.`)],
+      embeds: [
+        createSuccessEmbed(
+          `🔀 The cosmic order has been rearranged... ${player.queue.tracks.length} harmonies shall flow in divine chaos.`
+        ),
+      ],
     });
   },
 };

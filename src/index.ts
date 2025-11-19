@@ -17,6 +17,9 @@ if (missingEnvVars.length > 0) {
 // Create and start the bot
 const client = new SeraphimClient();
 
+// Setup raw event handler for lavalink-client
+client.on('raw', (d) => client.music.sendRawData(d));
+
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
   logger.info('Received SIGINT, shutting down gracefully...');

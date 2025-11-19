@@ -36,6 +36,10 @@ lavalink:
     soundcloudSearchEnabled: true
     gc-warnings: true
 
+plugins:
+  - dependency: "dev.lavalink.youtube:youtube-plugin:1.11.4"
+    snapshot: false
+
 metrics:
   prometheus:
     enabled: false

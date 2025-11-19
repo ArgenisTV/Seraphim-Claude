@@ -21,7 +21,7 @@ export async function handleButtonInteraction(
   const member = interaction.guild?.members.cache.get(interaction.user.id);
   const voiceChannel = member?.voice.channel;
 
-  if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+  if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
     await interaction.reply({
       embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim to command the divine controls.')],
       ephemeral: true,
@@ -32,30 +32,23 @@ export async function handleButtonInteraction(
   try {
     switch (interaction.customId) {
       case 'music_previous':
-        if (!player.queue.previous) {
-          await interaction.reply({
-            embeds: [createErrorEmbed('No echoes of past vibrations remain.')],
-            ephemeral: true,
-          });
-          return;
-        }
-        player.queue.unshift(player.queue.previous);
-        player.stop();
+        // Note: lavalink-client doesn't have built-in previous track history
+        // This would require custom implementation with queue history tracking
         await interaction.reply({
-          content: '⏮️ *Returning to the echoes of the past...*',
+          embeds: [createErrorEmbed('The echoes of past vibrations are beyond mortal reach.')],
           ephemeral: true,
         });
         break;
 
       case 'music_pause':
         if (player.paused) {
-          player.pause(false);
+          await player.resume();
           await interaction.reply({
             content: '▶️ *The harmonies flow anew!*',
             ephemeral: true,
           });
         } else {
-          player.pause(true);
+          await player.pause();
           await interaction.reply({
             content: '⏸️ *The vibrations rest...*',
             ephemeral: true,
@@ -64,14 +57,14 @@ export async function handleButtonInteraction(
         break;
 
       case 'music_skip':
-        if (player.queue.size === 0) {
+        if (player.queue.tracks.length === 0) {
           await interaction.reply({
             embeds: [createErrorEmbed('No further vibrations await in the celestial queue.')],
             ephemeral: true,
           });
           return;
         }
-        player.stop();
+        await player.skip();
         await interaction.reply({
           content: '⏭️ *Transcending to the next harmony...*',
           ephemeral: true,
@@ -79,7 +72,7 @@ export async function handleButtonInteraction(
         break;
 
       case 'music_shuffle':
-        if (player.queue.size === 0) {
+        if (player.queue.tracks.length === 0) {
           await interaction.reply({
             embeds: [createErrorEmbed('The celestial queue lays barren.')],
             ephemeral: true,
@@ -94,9 +87,8 @@ export async function handleButtonInteraction(
         break;
 
       case 'music_stop':
-        player.queue.clear();
-        player.stop();
-        player.destroy();
+        await player.stopPlaying(); // Clears queue and stops playback
+        await player.destroy();
         await interaction.reply({
           content: '*Slumbers...*',
           ephemeral: true,

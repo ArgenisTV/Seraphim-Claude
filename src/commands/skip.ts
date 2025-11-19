@@ -20,7 +20,7 @@ export const skipCommand: Command = {
     const member = interaction.member as GuildMember;
     const voiceChannel = member.voice.channel;
 
-    if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
       await interaction.reply({
         embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
@@ -28,7 +28,7 @@ export const skipCommand: Command = {
       return;
     }
 
-    if (player.queue.size === 0) {
+    if (player.queue.tracks.length === 0) {
       await interaction.reply({
         embeds: [createErrorEmbed('No further vibrations await in the celestial queue.')],
         ephemeral: true,
@@ -36,7 +36,7 @@ export const skipCommand: Command = {
       return;
     }
 
-    player.stop();
+    await player.skip();
 
     await interaction.reply({
       embeds: [createSuccessEmbed(`⏭️ Transcending to the next harmony...`)],

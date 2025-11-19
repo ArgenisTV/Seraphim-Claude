@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
-import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
+import { createErrorEmbed } from '../utils/embeds';
 
 export const backCommand: Command = {
   name: 'back',
@@ -20,7 +20,7 @@ export const backCommand: Command = {
     const member = interaction.member as GuildMember;
     const voiceChannel = member.voice.channel;
 
-    if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
       await interaction.reply({
         embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
@@ -28,19 +28,10 @@ export const backCommand: Command = {
       return;
     }
 
-    if (!player.queue.previous) {
-      await interaction.reply({
-        embeds: [createErrorEmbed('No echoes of past vibrations remain.')],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    player.queue.unshift(player.queue.previous);
-    player.stop();
-
+    // lavalink-client doesn't have built-in track history
     await interaction.reply({
-      embeds: [createSuccessEmbed('⏮️ Returning to the echoes of the past...')],
+      embeds: [createErrorEmbed('The echoes of past vibrations are beyond mortal reach.')],
+      ephemeral: true,
     });
   },
 };

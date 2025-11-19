@@ -20,7 +20,7 @@ export const pauseCommand: Command = {
     const member = interaction.member as GuildMember;
     const voiceChannel = member.voice.channel;
 
-    if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
       await interaction.reply({
         embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
@@ -28,12 +28,16 @@ export const pauseCommand: Command = {
       return;
     }
 
-    player.pause(!player.paused);
-
-    await interaction.reply({
-      embeds: [
-        createSuccessEmbed(player.paused ? '⏸️ The vibrations rest...' : '▶️ The harmonies flow anew!'),
-      ],
-    });
+    if (player.paused) {
+      await player.resume();
+      await interaction.reply({
+        embeds: [createSuccessEmbed('▶️ The harmonies flow anew!')],
+      });
+    } else {
+      await player.pause();
+      await interaction.reply({
+        embeds: [createSuccessEmbed('⏸️ The vibrations rest...')],
+      });
+    }
   },
 };
