@@ -1,4 +1,4 @@
-import { Player, Track } from 'erela.js';
+import { Player, Track } from 'lavalink-client';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Message } from 'discord.js';
 import { createNowPlayingEmbed } from '../utils/embeds';
@@ -13,7 +13,7 @@ export async function updateNowPlayingMessage(
   player: Player,
   track: Track
 ): Promise<void> {
-  const channel = client.channels.cache.get(player.textChannel!);
+  const channel = client.channels.cache.get(player.textChannelId!);
 
   if (!channel || !('send' in channel)) {
     return;
@@ -29,7 +29,8 @@ export async function updateNowPlayingMessage(
         .setCustomId('music_previous')
         .setLabel('Previous')
         .setEmoji('⏮️')
-        .setStyle(ButtonStyle.Secondary),
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true), // Disabled as we don't track history yet
       new ButtonBuilder()
         .setCustomId('music_pause')
         .setLabel(player.paused ? 'Resume' : 'Pause')
@@ -52,7 +53,7 @@ export async function updateNowPlayingMessage(
         .setStyle(ButtonStyle.Danger)
     );
 
-    const existingMessage = nowPlayingMessages.get(player.guild);
+    const existingMessage = nowPlayingMessages.get(player.guildId);
 
     if (existingMessage) {
       // Update existing message
@@ -61,12 +62,12 @@ export async function updateNowPlayingMessage(
       } catch (error) {
         // Message was deleted or we lost access, send a new one
         const newMessage = await channel.send({ embeds: [embed], components: [row] });
-        nowPlayingMessages.set(player.guild, newMessage);
+        nowPlayingMessages.set(player.guildId, newMessage);
       }
     } else {
       // Send new message
       const message = await channel.send({ embeds: [embed], components: [row] });
-      nowPlayingMessages.set(player.guild, message);
+      nowPlayingMessages.set(player.guildId, message);
     }
   } catch (error) {
     logger.error('Error updating now playing message:', error);

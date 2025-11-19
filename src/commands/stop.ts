@@ -20,7 +20,7 @@ export const stopCommand: Command = {
     const member = interaction.member as GuildMember;
     const voiceChannel = member.voice.channel;
 
-    if (!voiceChannel || voiceChannel.id !== player.voiceChannel) {
+    if (!voiceChannel || voiceChannel.id !== player.voiceChannelId) {
       await interaction.reply({
         embeds: [createErrorEmbed('Thou must share the sacred chamber with Seraphim.')],
         ephemeral: true,
@@ -28,9 +28,8 @@ export const stopCommand: Command = {
       return;
     }
 
-    player.queue.clear();
-    player.stop();
-    player.destroy();
+    await player.stopPlaying(); // Clears queue and stops playback
+    await player.destroy();
 
     await interaction.reply({
       content: '*Slumbers...*',

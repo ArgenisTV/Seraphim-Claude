@@ -5,13 +5,13 @@ export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0xFFD700)
     .setTitle('✧ Resonating with Cosmic Vibrations')
-    .setDescription(`**[${track.title}](${track.uri})**`)
+    .setDescription(`**[${track.info.title}](${track.info.uri})**`)
     .addFields(
-      { name: 'Divine Creator', value: track.author || 'Unknown', inline: true },
-      { name: 'Duration', value: formatDuration(track.duration), inline: true },
+      { name: 'Divine Creator', value: track.info.author || 'Unknown', inline: true },
+      { name: 'Duration', value: formatDuration(track.info.duration), inline: true },
       { name: 'Summoned by', value: track.requester.toString(), inline: true }
     )
-    .setThumbnail(track.thumbnail || null)
+    .setThumbnail(track.info.artworkUrl || null)
     .setTimestamp();
 }
 
@@ -19,16 +19,22 @@ export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack):
   const embed = new EmbedBuilder()
     .setColor(0xFFD700)
     .setTitle('✧ The Celestial Harmonies Await')
-    .setDescription(`**Current Resonance:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Forthcoming Vibrations:**`)
+    .setDescription(
+      `**Current Resonance:**\n[${currentTrack.info.title}](${currentTrack.info.uri})\n\n**Forthcoming Vibrations:**`
+    )
     .setTimestamp();
 
-  const upNext = queue.slice(0, 10).map((track, index) =>
-    `${index + 1}. [${track.title}](${track.uri}) - ${formatDuration(track.duration)}`
-  ).join('\n');
+  const upNext = queue
+    .slice(0, 10)
+    .map(
+      (track, index) =>
+        `${index + 1}. [${track.info.title}](${track.info.uri}) - ${formatDuration(track.info.duration)}`
+    )
+    .join('\n');
 
   if (upNext) {
     embed.setDescription(
-      `**Current Resonance:**\n[${currentTrack.title}](${currentTrack.uri})\n\n**Forthcoming Vibrations:**\n${upNext}`
+      `**Current Resonance:**\n[${currentTrack.info.title}](${currentTrack.info.uri})\n\n**Forthcoming Vibrations:**\n${upNext}`
     );
   }
 

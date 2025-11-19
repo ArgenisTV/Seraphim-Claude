@@ -3,7 +3,6 @@ import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
 import { logger } from '../utils/logger';
-import { SearchResult } from 'erela.js';
 
 export const playCommand: Command = {
   name: 'play',
@@ -32,32 +31,23 @@ export const playCommand: Command = {
     const query = interaction.options.getString('query', true);
 
     try {
-      // Search for tracks
-      let res: SearchResult;
+      // Get or create player
+      let player = client.music.getPlayer(interaction.guildId!);
+      const isNewPlayer = !player;
 
-      // erela.js handles the ytsearch: prefix automatically, just pass the query
-      res = await client.music.search(query, interaction.user);
-
-      if (res.loadType === 'LOAD_FAILED' || res.loadType === 'NO_MATCHES') {
-        await interaction.editReply({
-          embeds: [createErrorEmbed('The ethereal realm yielded no resonance for thy seeking.')],
+      if (!player) {
+        player = client.music.createPlayer({
+          guildId: interaction.guildId!,
+          voiceChannelId: voiceChannel.id,
+          textChannelId: interaction.channelId,
+          selfDeaf: true,
+          volume: parseInt(process.env.DEFAULT_VOLUME || '50'),
         });
-        return;
       }
 
-      // Get or create player
-      const player = client.music.create({
-        guild: interaction.guildId!,
-        voiceChannel: voiceChannel.id,
-        textChannel: interaction.channelId,
-        selfDeafen: true,
-        volume: parseInt(process.env.DEFAULT_VOLUME || '50'),
-      });
-
       // Connect to voice channel if not connected
-      const isFirstJoin = player.state !== 'CONNECTED';
-      if (isFirstJoin) {
-        player.connect();
+      if (isNewPlayer) {
+        await player.connect();
         // Send join message to text channel
         const channel = await client.channels.fetch(interaction.channelId);
         if (channel && 'send' in channel) {
@@ -65,41 +55,57 @@ export const playCommand: Command = {
         }
       }
 
+      // Search for tracks using the player
+      const res = await player.search(
+        {
+          query: query,
+        },
+        interaction.user
+      );
+
+      // Handle search failures
+      if (!res || !res.tracks || res.tracks.length === 0) {
+        await interaction.editReply({
+          embeds: [createErrorEmbed('The ethereal realm yielded no resonance for thy seeking.')],
+        });
+        return;
+      }
+
       // Handle playlist vs single track
-      if (res.loadType === 'PLAYLIST_LOADED') {
+      if (res.loadType === 'playlist') {
         // Add all tracks to queue
-        for (const track of res.tracks) {
-          (track as any).requester = interaction.user;
-          player.queue.add(track);
-        }
+        await player.queue.add(res.tracks);
 
         await interaction.editReply({
           embeds: [
             createSuccessEmbed(
-              `Attuning to playlist **${res.playlist?.name}** - ${res.tracks.length} harmonies shall resonate through the cosmos.`
+              `Attuning to playlist **${res.playlist?.name || 'Unknown'}** - ${res.tracks.length} harmonies shall resonate through the cosmos.`
             ),
           ],
         });
       } else {
-        // Add single track
+        // Add single track (first result from search or direct track)
         const track = res.tracks[0];
-        (track as any).requester = interaction.user;
-        player.queue.add(track);
+        await player.queue.add(track);
 
         if (!player.playing && !player.paused) {
           await interaction.editReply({
-            embeds: [createSuccessEmbed(`Attuning to: **${track.title}**`)],
+            embeds: [createSuccessEmbed(`Attuning to: **${track.info.title}**`)],
           });
         } else {
           await interaction.editReply({
-            embeds: [createSuccessEmbed(`Attuning to: **${track.title}**\n*This harmony shall join the celestial queue.*`)],
+            embeds: [
+              createSuccessEmbed(
+                `Attuning to: **${track.info.title}**\n*This harmony shall join the celestial queue.*`
+              ),
+            ],
           });
         }
       }
 
       // Start playing if not already
-      if (!player.playing && !player.paused && player.queue.totalSize > 0) {
-        player.play();
+      if (!player.playing && !player.paused) {
+        await player.play();
       }
     } catch (error) {
       logger.error('Error in play command:', error);

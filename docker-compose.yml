@@ -1,7 +1,7 @@
 services:
   # Lavalink - Audio processing server
   lavalink:
-    image: ghcr.io/lavalink-devs/lavalink:3
+    image: ghcr.io/lavalink-devs/lavalink:4
     container_name: seraphim-lavalink
     restart: unless-stopped
     environment:

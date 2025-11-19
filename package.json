@@ -15,8 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1",
-    "erela.js": "^2.4.0",
-    "erela.js-spotify": "^1.2.0",
+    "lavalink-client": "^2.6.6",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
