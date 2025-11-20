@@ -3,6 +3,7 @@ import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
 import { logger } from '../utils/logger';
+import { auditLogger } from '../utils/auditLogger';
 import { checkVoicePermissions, getPermissionErrorMessage } from '../utils/voiceValidation';
 import { isInGuild, GUILD_ONLY_ERROR } from '../utils/guildValidation';
 import { validateQuery } from '../utils/queryValidation';
@@ -84,6 +85,24 @@ export const playCommand: Command = {
     // Validate and sanitize the query
     const validation = validateQuery(query);
     if (!validation.isValid) {
+      // Audit log: Check if this is an SSRF attempt
+      if (validation.error?.includes('Security restriction:')) {
+        auditLogger.logSSRFBlocked(
+          interaction.user.id,
+          interaction.guildId!,
+          query,
+          validation.error
+        );
+      } else {
+        // Regular invalid input
+        auditLogger.logInvalidInput(
+          interaction.user.id,
+          interaction.guildId!,
+          'query',
+          validation.error || 'Invalid query'
+        );
+      }
+
       await interaction.editReply({
         embeds: [createErrorEmbed(validation.error || 'Invalid query.')],
       });

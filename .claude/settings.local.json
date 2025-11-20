@@ -3,7 +3,10 @@
     "allow": [
       "Bash(docker-compose logs:*)",
       "Bash(docker-compose ps:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(docker images:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

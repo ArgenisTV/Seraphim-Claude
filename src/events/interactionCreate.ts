@@ -1,5 +1,6 @@
 import { SeraphimClient } from '../client/SeraphimClient';
 import { logger } from '../utils/logger';
+import { auditLogger } from '../utils/auditLogger';
 import { handleButtonInteraction } from '../handlers/buttonHandler';
 import { checkRateLimit } from '../utils/rateLimiter';
 import { createErrorEmbed } from '../utils/embeds';
@@ -20,6 +21,10 @@ export function interactionCreateEvent(client: SeraphimClient): void {
         const rateLimitResult = checkRateLimit(interaction.user.id);
         if (rateLimitResult.isLimited) {
           const retryAfterSeconds = Math.ceil(rateLimitResult.retryAfter / 1000);
+
+          // Audit log: Rate limit exceeded
+          auditLogger.logRateLimitExceeded(interaction.user.id, rateLimitResult.retryAfter);
+
           await interaction.reply({
             embeds: [
               createErrorEmbed(
@@ -32,6 +37,16 @@ export function interactionCreateEvent(client: SeraphimClient): void {
           return;
         }
 
+        // Audit log: Command execution
+        auditLogger.logCommandExecution(
+          interaction.user.id,
+          interaction.guildId || 'DM',
+          interaction.commandName,
+          {
+            username: interaction.user.tag,
+          }
+        );
+
         await command.execute(client, interaction);
       }
 
@@ -41,6 +56,17 @@ export function interactionCreateEvent(client: SeraphimClient): void {
       }
     } catch (error) {
       logger.error('Error handling interaction:', error);
+
+      // Audit log: Error occurred
+      auditLogger.logError(
+        'InteractionError',
+        error instanceof Error ? error.message : 'Unknown error',
+        {
+          interactionType: interaction.type,
+          userId: interaction.user?.id,
+          guildId: interaction.guildId,
+        }
+      );
 
       const errorMessage = { content: 'An error occurred while processing your request.', ephemeral: true };
 

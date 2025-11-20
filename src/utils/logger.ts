@@ -28,6 +28,25 @@ class Logger {
   }
 
   /**
+   * Sanitizes error objects to prevent information disclosure in production
+   *
+   * Removes stack traces and file paths that could expose internal structure
+   *
+   * @param {Error} error - The error to sanitize
+   * @returns {string} Sanitized error string
+   * @private
+   */
+  private sanitizeError(error: Error): string {
+    // In production, remove stack traces to prevent path disclosure
+    if (this.environment === 'production') {
+      return `${error.name}: ${error.message}`;
+    }
+
+    // In development, include full error details with stack trace
+    return `${error.name}: ${error.message}\n${error.stack || ''}`;
+  }
+
+  /**
    * Formats log message with timestamp and level
    */
   private formatMessage(level: LogLevel, message: string, ...args: any[]): string {
@@ -35,9 +54,9 @@ class Logger {
 
     // Format arguments
     const formattedArgs = args.length > 0 ? ' ' + args.map(arg => {
-      // Special handling for Error objects
+      // Special handling for Error objects with production sanitization
       if (arg instanceof Error) {
-        return `${arg.name}: ${arg.message}\n${arg.stack || ''}`;
+        return this.sanitizeError(arg);
       }
       // Pretty print objects
       if (typeof arg === 'object' && arg !== null) {
@@ -108,12 +127,23 @@ class Logger {
    * Log with custom metadata (for structured logging)
    */
   public logWithMetadata(level: LogLevel, message: string, metadata: Record<string, any> = {}): void {
+    // Sanitize any error objects in metadata
+    const sanitizedMetadata = { ...metadata };
+    if (sanitizedMetadata.error instanceof Error) {
+      sanitizedMetadata.error = {
+        name: sanitizedMetadata.error.name,
+        message: sanitizedMetadata.error.message,
+        // Stack trace included only in development
+        ...(this.environment !== 'production' && { stack: sanitizedMetadata.error.stack }),
+      };
+    }
+
     const enrichedMessage = {
       timestamp: new Date().toISOString(),
       level,
       message,
       environment: this.environment,
-      ...metadata,
+      ...sanitizedMetadata,
     };
 
     const output = JSON.stringify(enrichedMessage);

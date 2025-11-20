@@ -2,18 +2,38 @@ import { config } from 'dotenv';
 import { SeraphimClient } from './client/SeraphimClient';
 import { logger } from './utils/logger';
 import { startHealthMonitoring } from './utils/healthCheck';
+import { loadRequiredSecrets, isDockerSecretsMode, redactSecret } from './utils/secretsManager';
+import { startAutoRotation, checkAndRotate } from './utils/logRotation';
 
-// Load environment variables
+// Load environment variables from .env file (if not using Docker secrets)
 config();
 
-// Validate required environment variables
-const requiredEnvVars = ['DISCORD_TOKEN', 'CLIENT_ID', 'LAVALINK_PASSWORD'];
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+// Load required secrets (supports both env vars and Docker secrets)
+let secrets: Map<string, string>;
+try {
+  secrets = loadRequiredSecrets(['DISCORD_TOKEN', 'CLIENT_ID', 'LAVALINK_PASSWORD']);
 
-if (missingEnvVars.length > 0) {
-  logger.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  // Log secret loading mode (without exposing values)
+  if (isDockerSecretsMode()) {
+    logger.info('Loaded credentials from Docker secrets');
+  } else {
+    logger.info('Loaded credentials from environment variables');
+  }
+
+  // Optional: Log redacted token for debugging (only in development)
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug(`Discord token: ${redactSecret(secrets.get('DISCORD_TOKEN')!)}`);
+  }
+} catch (error) {
+  logger.error('Failed to load required secrets:', error);
   process.exit(1);
 }
+
+// Make secrets available globally via process.env for backward compatibility
+// This allows existing code to continue using process.env.DISCORD_TOKEN etc.
+process.env.DISCORD_TOKEN = secrets.get('DISCORD_TOKEN');
+process.env.CLIENT_ID = secrets.get('CLIENT_ID');
+process.env.LAVALINK_PASSWORD = secrets.get('LAVALINK_PASSWORD');
 
 // Validate optional environment variables with defaults
 const lavalinkPort = parseInt(process.env.LAVALINK_PORT || '2333');
@@ -59,6 +79,14 @@ process.on('uncaughtException', (error: Error) => {
   process.exit(1);
 });
 
+// Check and rotate logs on startup
+checkAndRotate({
+  logDirectory: './logs',
+  logFileName: 'app.log',
+  maxSize: 10 * 1024 * 1024, // 10 MB
+  maxFiles: 5,
+});
+
 // Start the bot
 client.start()
   .then(() => {
@@ -66,6 +94,13 @@ client.start()
     if (process.env.NODE_ENV === 'production') {
       startHealthMonitoring(client, 300000);
       logger.info('Production health monitoring enabled');
+
+      // Start automatic log rotation (check every hour)
+      startAutoRotation(3600000, {
+        logDirectory: './logs',
+        logFileName: 'app.log',
+      });
+      logger.info('Automatic log rotation enabled');
     }
   })
   .catch((error) => {

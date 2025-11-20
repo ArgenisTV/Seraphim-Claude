@@ -11,16 +11,25 @@ services:
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - ./lavalink/plugins:/opt/Lavalink/plugins
+      - ./lavalink/healthcheck.sh:/opt/Lavalink/healthcheck.sh:ro
     networks:
       - seraphim-network
     expose:
       - 2333
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --quiet --tries=1 --spider --header=\"Authorization: $${LAVALINK_SERVER_PASSWORD}\" http://localhost:2333/version"]
+      test: ["CMD", "sh", "/opt/Lavalink/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
 
   # Discord Music Bot
   bot:
@@ -38,6 +47,14 @@ services:
       - seraphim-network
     volumes:
       - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
 networks:
   seraphim-network:
