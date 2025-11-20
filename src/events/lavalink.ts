@@ -1,6 +1,9 @@
+import { Track } from 'lavalink-client';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { logger } from '../utils/logger';
-import { updateNowPlayingMessage } from '../handlers/nowPlayingHandler';
+import { updateNowPlayingMessage, cleanupNowPlayingMessage } from '../handlers/nowPlayingHandler';
+import { tryAlternativeSource, cleanupRetryTracking, resetRetryCount } from '../utils/sourceFallback';
+import { addToHistory, clearHistory } from '../utils/trackHistory';
 
 export function lavalinkEvents(client: SeraphimClient): void {
   // Node events - accessed through nodeManager
@@ -24,24 +27,72 @@ export function lavalinkEvents(client: SeraphimClient): void {
   client.music.on('trackStart', async (player, track) => {
     if (!track) return;
     logger.info(`Now playing: ${track.info.title} in guild ${player.guildId}`);
+
+    // Reset retry count on successful playback
+    resetRetryCount(track);
+
     await updateNowPlayingMessage(client, player, track);
   });
 
-  client.music.on('trackEnd', (player, track) => {
+  client.music.on('trackEnd', (player, track, payload) => {
     if (!track) return;
     logger.debug(`Track ended: ${track.info.title} in guild ${player.guildId}`);
+
+    // Add to history only if track finished normally (not skipped, stopped, or replaced)
+    if (payload.reason === 'finished') {
+      addToHistory(player.guildId, track);
+      logger.debug(`Added track to history: ${track.info.title}`);
+    }
   });
 
-  client.music.on('trackStuck', (player, track, payload) => {
+  client.music.on('trackStuck', async (player, track, payload) => {
     if (!track) return;
     logger.error(`Track stuck: ${track.info.title} in guild ${player.guildId}`, payload);
-    player.skip(); // Skip to next track
+
+    // Try to find alternative source
+    const foundAlternative = await tryAlternativeSource(player, track);
+
+    if (!foundAlternative) {
+      // No alternative found, skip to next track
+      logger.warn(`No alternative source found for stuck track, skipping: ${track.info.title}`);
+
+      const channel = client.channels.cache.get(player.textChannelId!);
+      if (channel && 'send' in channel) {
+        channel.send(`⚠️ Unable to play **${track.info.title}** - skipping to next track.`);
+      }
+
+      await player.skip();
+    }
   });
 
-  client.music.on('trackError', (player, track, payload) => {
+  client.music.on('trackError', async (player, track, payload) => {
     if (!track) return;
     logger.error(`Track error: ${track.info.title} in guild ${player.guildId}`, payload);
-    player.skip(); // Skip to next track
+
+    // Only try alternative source if track is fully resolved (has identifier)
+    if (track.info.identifier) {
+      // Track is resolved, safe to cast to Track type
+      const resolvedTrack = track as Track;
+
+      // Try to find alternative source
+      const foundAlternative = await tryAlternativeSource(player, resolvedTrack);
+
+      if (!foundAlternative) {
+        // No alternative found, skip to next track
+        logger.warn(`No alternative source found for errored track, skipping: ${track.info.title}`);
+
+        const channel = client.channels.cache.get(player.textChannelId!);
+        if (channel && 'send' in channel) {
+          channel.send(`⚠️ Unable to play **${track.info.title}** - skipping to next track.`);
+        }
+
+        await player.skip();
+      }
+    } else {
+      // Unresolved track error - skip immediately
+      logger.warn(`Unresolved track error, skipping: ${track.info.title}`);
+      await player.skip();
+    }
   });
 
   client.music.on('queueEnd', (player) => {
@@ -63,6 +114,15 @@ export function lavalinkEvents(client: SeraphimClient): void {
 
   client.music.on('playerDestroy', (player, reason) => {
     logger.info(`Player destroyed in guild ${player.guildId}, reason: ${reason}`);
+
+    // Clean up now playing message to prevent memory leak
+    cleanupNowPlayingMessage(player.guildId);
+
+    // Clean up retry tracking to prevent memory leak
+    cleanupRetryTracking(player.guildId);
+
+    // Clear track history to prevent memory leak
+    clearHistory(player.guildId);
 
     // Send disconnect message if appropriate
     if (reason === 'QueueEmpty' || reason === 'PlayerInactivity') {

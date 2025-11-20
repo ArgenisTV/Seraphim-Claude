@@ -2,6 +2,7 @@ import { ButtonInteraction } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { createErrorEmbed } from '../utils/embeds';
 import { logger } from '../utils/logger';
+import { getPreviousTrack, hasPreviousTrack } from '../utils/trackHistory';
 
 export async function handleButtonInteraction(
   client: SeraphimClient,
@@ -32,10 +33,32 @@ export async function handleButtonInteraction(
   try {
     switch (interaction.customId) {
       case 'music_previous':
-        // Note: lavalink-client doesn't have built-in previous track history
-        // This would require custom implementation with queue history tracking
+        // Check if there's a previous track
+        if (!hasPreviousTrack(interaction.guildId!)) {
+          await interaction.reply({
+            embeds: [createErrorEmbed('No previous harmonies exist in the ethereal record.')],
+            ephemeral: true,
+          });
+          return;
+        }
+
+        // Get the previous track
+        const previousTrack = getPreviousTrack(interaction.guildId!);
+
+        if (!previousTrack) {
+          await interaction.reply({
+            embeds: [createErrorEmbed('The echoes of past vibrations have faded.')],
+            ephemeral: true,
+          });
+          return;
+        }
+
+        // Add to front of queue and skip current track
+        player.queue.splice(0, 0, previousTrack);
+        await player.skip();
+
         await interaction.reply({
-          embeds: [createErrorEmbed('The echoes of past vibrations are beyond mortal reach.')],
+          content: `⏮️ *Returning to: **${previousTrack.info.title}***`,
           ephemeral: true,
         });
         break;
@@ -100,9 +123,18 @@ export async function handleButtonInteraction(
     }
   } catch (error) {
     logger.error('Error in button handler:', error);
-    await interaction.reply({
-      embeds: [createErrorEmbed('The cosmic forces have disrupted thy command.')],
-      ephemeral: true,
-    });
+
+    // Check if we've already replied to avoid Discord API errors
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        embeds: [createErrorEmbed('The cosmic forces have disrupted thy command.')],
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        embeds: [createErrorEmbed('The cosmic forces have disrupted thy command.')],
+        ephemeral: true,
+      });
+    }
   }
 }

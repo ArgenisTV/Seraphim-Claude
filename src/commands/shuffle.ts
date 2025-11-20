@@ -2,11 +2,31 @@ import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
+import { isInGuild, GUILD_ONLY_ERROR } from '../utils/guildValidation';
 
+/**
+ * Shuffle Command
+ *
+ * Randomly shuffles the order of tracks in the queue.
+ * Does not affect the currently playing track.
+ * Requires user to be in the same voice channel as the bot.
+ *
+ * @example
+ * /shuffle  // Randomizes queue order
+ */
 export const shuffleCommand: Command = {
   name: 'shuffle',
   description: 'Shuffle the queue',
   async execute(client: SeraphimClient, interaction: ChatInputCommandInteraction) {
+    // Ensure command is executed in a guild
+    if (!isInGuild(interaction)) {
+      await interaction.reply({
+        embeds: [createErrorEmbed(GUILD_ONLY_ERROR)],
+        ephemeral: true,
+      });
+      return;
+    }
+
     const player = client.music.players.get(interaction.guildId!);
 
     if (!player) {

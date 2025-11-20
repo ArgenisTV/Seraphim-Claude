@@ -1,6 +1,23 @@
 import { EmbedBuilder } from 'discord.js';
 import { QueueTrack } from '../types/QueueTrack';
 
+/**
+ * Embed Utilities
+ *
+ * Provides functions for creating styled Discord embeds
+ * with consistent theming and formatting.
+ */
+
+/**
+ * Creates a "now playing" embed for the current track
+ *
+ * @param {QueueTrack} track - The track to display
+ * @returns {EmbedBuilder} Configured embed with track information
+ *
+ * @example
+ * const embed = createNowPlayingEmbed(currentTrack);
+ * await channel.send({ embeds: [embed] });
+ */
 export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0xFFD700)
@@ -15,6 +32,17 @@ export function createNowPlayingEmbed(track: QueueTrack): EmbedBuilder {
     .setTimestamp();
 }
 
+/**
+ * Creates a queue display embed showing current and upcoming tracks
+ *
+ * @param {QueueTrack[]} queue - Array of queued tracks
+ * @param {QueueTrack} currentTrack - The currently playing track
+ * @returns {EmbedBuilder} Configured embed with queue information
+ *
+ * @example
+ * const embed = createQueueEmbed(player.queue.tracks, player.queue.current);
+ * await interaction.reply({ embeds: [embed] });
+ */
 export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack): EmbedBuilder {
   const embed = new EmbedBuilder()
     .setColor(0xFFD700)
@@ -45,6 +73,16 @@ export function createQueueEmbed(queue: QueueTrack[], currentTrack: QueueTrack):
   return embed;
 }
 
+/**
+ * Creates an error embed with red styling
+ *
+ * @param {string} message - The error message to display
+ * @returns {EmbedBuilder} Configured error embed
+ *
+ * @example
+ * const embed = createErrorEmbed('Track not found');
+ * await interaction.reply({ embeds: [embed], ephemeral: true });
+ */
 export function createErrorEmbed(message: string): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0x8B0000)
@@ -53,6 +91,16 @@ export function createErrorEmbed(message: string): EmbedBuilder {
     .setTimestamp();
 }
 
+/**
+ * Creates a success embed with gold styling
+ *
+ * @param {string} message - The success message to display
+ * @returns {EmbedBuilder} Configured success embed
+ *
+ * @example
+ * const embed = createSuccessEmbed('Track added to queue');
+ * await interaction.reply({ embeds: [embed] });
+ */
 export function createSuccessEmbed(message: string): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0xFFD700)
@@ -61,6 +109,17 @@ export function createSuccessEmbed(message: string): EmbedBuilder {
     .setTimestamp();
 }
 
+/**
+ * Creates an info embed with blue styling
+ *
+ * @param {string} title - The embed title
+ * @param {string} message - The info message to display
+ * @returns {EmbedBuilder} Configured info embed
+ *
+ * @example
+ * const embed = createInfoEmbed('Bot Info', 'Version 1.0.0');
+ * await interaction.reply({ embeds: [embed] });
+ */
 export function createInfoEmbed(title: string, message: string): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0x5865F2)
@@ -69,6 +128,16 @@ export function createInfoEmbed(title: string, message: string): EmbedBuilder {
     .setTimestamp();
 }
 
+/**
+ * Formats a duration in milliseconds to a human-readable string
+ *
+ * @param {number} ms - Duration in milliseconds
+ * @returns {string} Formatted duration (MM:SS or HH:MM:SS)
+ *
+ * @example
+ * formatDuration(125000); // Returns "2:05"
+ * formatDuration(3725000); // Returns "1:02:05"
+ */
 export function formatDuration(ms: number): string {
   const seconds = Math.floor((ms / 1000) % 60);
   const minutes = Math.floor((ms / (1000 * 60)) % 60);

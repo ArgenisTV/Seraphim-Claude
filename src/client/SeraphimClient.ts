@@ -12,10 +12,27 @@ import { logger } from '../utils/logger';
 import { registerEvents } from '../events';
 import { registerCommands } from '../commands';
 
+/**
+ * Seraphim Discord Music Bot Client
+ *
+ * Extended Discord.js client with integrated Lavalink music manager
+ * and command handling capabilities.
+ *
+ * @extends {Client}
+ */
 export class SeraphimClient extends Client {
+  /** Collection of registered slash commands */
   public commands: Collection<string, Command>;
+
+  /** Lavalink music manager instance */
   public music: LavalinkManager;
 
+  /**
+   * Creates a new Seraphim client instance
+   *
+   * Initializes Discord client with required intents and sets up
+   * the Lavalink music manager for audio playback.
+   */
   constructor() {
     super({
       intents: [
@@ -29,11 +46,21 @@ export class SeraphimClient extends Client {
     this.music = this.createMusicManager();
   }
 
+  /**
+   * Creates and configures the Lavalink music manager
+   *
+   * Sets up Lavalink nodes, player options, and connection settings.
+   * Environment variables are validated at startup in src/index.ts.
+   *
+   * @returns {LavalinkManager} Configured Lavalink manager instance
+   * @private
+   */
   private createMusicManager(): LavalinkManager {
+    // Note: Environment variables are validated at startup in src/index.ts
     return new LavalinkManager({
       nodes: [
         {
-          authorization: process.env.LAVALINK_PASSWORD || 'youshallnotpass',
+          authorization: process.env.LAVALINK_PASSWORD!,
           host: process.env.LAVALINK_HOST || 'lavalink',
           port: parseInt(process.env.LAVALINK_PORT || '2333'),
           id: 'seraphim-node',
@@ -52,7 +79,7 @@ export class SeraphimClient extends Client {
       },
       autoSkip: true,
       playerOptions: {
-        clientBasedPositionUpdateInterval: 150,
+        clientBasedPositionUpdateInterval: 1000, // Updated: Reduced frequency to 1 second (was 150ms)
         defaultSearchPlatform: 'ytsearch',
         volumeDecrementer: 0.75,
         onDisconnect: {
@@ -67,6 +94,22 @@ export class SeraphimClient extends Client {
     });
   }
 
+  /**
+   * Starts the bot and connects to Discord
+   *
+   * Performs the following initialization steps:
+   * 1. Registers slash commands
+   * 2. Registers event handlers
+   * 3. Registers commands with Discord API
+   * 4. Logs in to Discord
+   * 5. Initializes Lavalink music manager
+   *
+   * @returns {Promise<void>} Resolves when bot is fully started
+   * @throws {Error} If bot fails to start or connect
+   * @example
+   * const client = new SeraphimClient();
+   * await client.start();
+   */
   public async start(): Promise<void> {
     try {
       logger.info('Starting Seraphim Music Bot...');
@@ -97,6 +140,16 @@ export class SeraphimClient extends Client {
     }
   }
 
+  /**
+   * Registers slash commands with Discord API
+   *
+   * Converts command definitions to Discord slash command format
+   * and registers them globally for the application.
+   *
+   * @returns {Promise<void>} Resolves when commands are registered
+   * @throws {Error} If registration fails
+   * @private
+   */
   private async registerSlashCommands(): Promise<void> {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 
@@ -133,6 +186,18 @@ export class SeraphimClient extends Client {
     }
   }
 
+  /**
+   * Gracefully shuts down the bot
+   *
+   * Destroys all active music players and disconnects from Discord.
+   * Should be called on SIGTERM or SIGINT signals.
+   *
+   * @returns {Promise<void>} Resolves when shutdown is complete
+   * @example
+   * process.on('SIGTERM', async () => {
+   *   await client.shutdown();
+   * });
+   */
   public async shutdown(): Promise<void> {
     logger.info('Shutting down...');
     // Destroy all players

@@ -4,7 +4,7 @@ server:
 
 lavalink:
   server:
-    password: "youshallnotpass"
+    password: "${LAVALINK_SERVER_PASSWORD:youshallnotpass}"
     sources:
       youtube: false  # Disabled - using youtube-plugin instead
       bandcamp: true
@@ -27,7 +27,7 @@ lavalink:
     bufferDurationMs: 400
     frameBufferDurationMs: 1000
     opusEncodingQuality: 10
-    resamplingQuality: LOW
+    resamplingQuality: MEDIUM  # Updated: Changed from LOW for better audio quality
     trackStuckThresholdMs: 10000
     useSeekGhosting: true
     youtubePlaylistLoadLimit: 100
@@ -37,8 +37,48 @@ lavalink:
     gc-warnings: true
 
 plugins:
-  - dependency: "dev.lavalink.youtube:youtube-plugin:1.11.4"
+  # YouTube Plugin - Handles YouTube playback
+  - dependency: "dev.lavalink.youtube:youtube-plugin:1.16.0"
     snapshot: false
+  # LavaSrc Plugin - Handles Spotify, Apple Music, Deezer
+  - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.2.0"
+    snapshot: false
+    repository: "https://maven.lavalink.dev/releases"
+
+# Plugin Configurations
+lavasrc:
+  providers:
+    # Fallback to YouTube using ISRC (International Standard Recording Code)
+    - "ytsearch:\"%ISRC%\""
+    # If ISRC not found, search by query
+    - "ytsearch:%QUERY%"
+  sources:
+    # Enable/disable music sources
+    spotify: true          # Spotify URLs and search
+    applemusic: true       # Apple Music URLs
+    deezer: true           # Deezer URLs
+    yandexmusic: false     # Yandex Music (disabled)
+    flowerytts: false      # TTS service (disabled)
+    youtube: true          # YouTube search via LavaSrc
+
+  # Spotify Configuration
+  spotify:
+    clientId: "${SPOTIFY_CLIENT_ID:}"
+    clientSecret: "${SPOTIFY_CLIENT_SECRET:}"
+    countryCode: "US"
+    # Note: Get credentials from https://developer.spotify.com/dashboard
+    # If not provided, Spotify will fall back to YouTube
+
+  # Apple Music Configuration (no API key needed!)
+  applemusic:
+    countryCode: "US"
+    mediaAPIToken: "${APPLE_MUSIC_TOKEN:}"
+    # Note: Apple Music works without token, uses public API
+
+  # Deezer Configuration (no API key needed!)
+  deezer:
+    masterDecryptionKey: "${DEEZER_MASTER_KEY:}"
+    # Note: Deezer works without key for basic functionality
 
 metrics:
   prometheus:
