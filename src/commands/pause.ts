@@ -2,11 +2,38 @@ import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds';
+import { isInGuild, GUILD_ONLY_ERROR } from '../utils/guildValidation';
 
+/**
+ * Pause Command
+ *
+ * Pauses currently playing music or resumes if already paused.
+ * Toggles between pause and resume states.
+ *
+ * @example
+ * /pause  // Pauses music
+ * /pause  // Resumes music
+ */
 export const pauseCommand: Command = {
   name: 'pause',
   description: 'Pause or resume playback',
+  /**
+   * Executes the pause/resume command
+   *
+   * @param {SeraphimClient} client - The bot client instance
+   * @param {ChatInputCommandInteraction} interaction - Discord slash command interaction
+   * @returns {Promise<void>} Resolves when command completes
+   */
   async execute(client: SeraphimClient, interaction: ChatInputCommandInteraction) {
+    // Ensure command is executed in a guild
+    if (!isInGuild(interaction)) {
+      await interaction.reply({
+        embeds: [createErrorEmbed(GUILD_ONLY_ERROR)],
+        ephemeral: true,
+      });
+      return;
+    }
+
     const player = client.music.players.get(interaction.guildId!);
 
     if (!player) {

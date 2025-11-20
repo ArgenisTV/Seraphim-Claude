@@ -1,6 +1,8 @@
 import { SeraphimClient } from '../client/SeraphimClient';
 import { logger } from '../utils/logger';
 import { handleButtonInteraction } from '../handlers/buttonHandler';
+import { checkRateLimit } from '../utils/rateLimiter';
+import { createErrorEmbed } from '../utils/embeds';
 
 export function interactionCreateEvent(client: SeraphimClient): void {
   client.on('interactionCreate', async (interaction) => {
@@ -11,6 +13,22 @@ export function interactionCreateEvent(client: SeraphimClient): void {
 
         if (!command) {
           logger.warn(`Unknown command: ${interaction.commandName}`);
+          return;
+        }
+
+        // Check rate limit
+        const rateLimitResult = checkRateLimit(interaction.user.id);
+        if (rateLimitResult.isLimited) {
+          const retryAfterSeconds = Math.ceil(rateLimitResult.retryAfter / 1000);
+          await interaction.reply({
+            embeds: [
+              createErrorEmbed(
+                `Thou art invoking commands too swiftly. Await ${retryAfterSeconds} seconds before thy next summons.`
+              ),
+            ],
+            ephemeral: true,
+          });
+          logger.warn(`Rate limited user ${interaction.user.tag} (${interaction.user.id})`);
           return;
         }
 

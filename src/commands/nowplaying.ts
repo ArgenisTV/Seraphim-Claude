@@ -3,11 +3,30 @@ import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed, createNowPlayingEmbed } from '../utils/embeds';
 import { QueueTrack } from '../types/QueueTrack';
+import { isInGuild, GUILD_ONLY_ERROR } from '../utils/guildValidation';
 
+/**
+ * Now Playing Command
+ *
+ * Displays detailed information about the currently playing track
+ * including title, author, duration, and album artwork (if available).
+ *
+ * @example
+ * /nowplaying  // Shows current track info
+ */
 export const nowplayingCommand: Command = {
   name: 'nowplaying',
   description: 'Show the currently playing track',
   async execute(client: SeraphimClient, interaction: ChatInputCommandInteraction) {
+    // Ensure command is executed in a guild
+    if (!isInGuild(interaction)) {
+      await interaction.reply({
+        embeds: [createErrorEmbed(GUILD_ONLY_ERROR)],
+        ephemeral: true,
+      });
+      return;
+    }
+
     const player = client.music.players.get(interaction.guildId!);
 
     if (!player || !player.queue.current) {

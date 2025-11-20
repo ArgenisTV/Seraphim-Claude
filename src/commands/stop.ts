@@ -2,11 +2,30 @@ import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { SeraphimClient } from '../client/SeraphimClient';
 import { Command } from '../types/Command';
 import { createErrorEmbed } from '../utils/embeds';
+import { isInGuild, GUILD_ONLY_ERROR } from '../utils/guildValidation';
 
+/**
+ * Stop Command
+ *
+ * Stops music playback, clears the entire queue, and disconnects the bot
+ * from the voice channel. Requires user to be in the same voice channel as the bot.
+ *
+ * @example
+ * /stop  // Stops music and disconnects bot
+ */
 export const stopCommand: Command = {
   name: 'stop',
   description: 'Stop playback and clear the queue',
   async execute(client: SeraphimClient, interaction: ChatInputCommandInteraction) {
+    // Ensure command is executed in a guild
+    if (!isInGuild(interaction)) {
+      await interaction.reply({
+        embeds: [createErrorEmbed(GUILD_ONLY_ERROR)],
+        ephemeral: true,
+      });
+      return;
+    }
+
     const player = client.music.players.get(interaction.guildId!);
 
     if (!player) {
