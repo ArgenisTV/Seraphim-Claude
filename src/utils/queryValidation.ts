@@ -5,6 +5,8 @@
  * and URLs to prevent issues with malformed or malicious inputs.
  */
 
+import { isUrlSafe } from './ssrfProtection';
+
 /**
  * Validates a music search query or URL
  *
@@ -140,8 +142,17 @@ export function validateMusicURL(url: string): {
     }
   }
 
-  // Allow HTTP/HTTPS streams
+  // Allow HTTP/HTTPS streams (with SSRF protection)
   if (parsedURL.protocol === 'http:' || parsedURL.protocol === 'https:') {
+    // SSRF protection check
+    const safetyCheck = isUrlSafe(url);
+    if (!safetyCheck.safe) {
+      return {
+        isValid: false,
+        error: `Security restriction: ${safetyCheck.reason}`,
+      };
+    }
+
     return {
       isValid: true,
       platform: 'HTTP Stream',

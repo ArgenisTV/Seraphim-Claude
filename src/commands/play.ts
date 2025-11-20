@@ -84,6 +84,22 @@ export const playCommand: Command = {
     // Validate and sanitize the query
     const validation = validateQuery(query);
     if (!validation.isValid) {
+      // Log validation failure
+      if (validation.error?.includes('Security restriction:')) {
+        logger.warn('SSRF attempt blocked', {
+          userId: interaction.user.id,
+          guildId: interaction.guildId,
+          query,
+          error: validation.error,
+        });
+      } else {
+        logger.debug('Invalid query', {
+          userId: interaction.user.id,
+          guildId: interaction.guildId,
+          error: validation.error,
+        });
+      }
+
       await interaction.editReply({
         embeds: [createErrorEmbed(validation.error || 'Invalid query.')],
       });

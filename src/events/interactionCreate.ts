@@ -20,6 +20,9 @@ export function interactionCreateEvent(client: SeraphimClient): void {
         const rateLimitResult = checkRateLimit(interaction.user.id);
         if (rateLimitResult.isLimited) {
           const retryAfterSeconds = Math.ceil(rateLimitResult.retryAfter / 1000);
+          logger.warn(`Rate limited user ${interaction.user.tag} (${interaction.user.id})`, {
+            retryAfter: rateLimitResult.retryAfter,
+          });
           await interaction.reply({
             embeds: [
               createErrorEmbed(
@@ -28,9 +31,15 @@ export function interactionCreateEvent(client: SeraphimClient): void {
             ],
             ephemeral: true,
           });
-          logger.warn(`Rate limited user ${interaction.user.tag} (${interaction.user.id})`);
           return;
         }
+
+        // Log command execution
+        logger.info(`Command executed: ${interaction.commandName}`, {
+          userId: interaction.user.id,
+          username: interaction.user.tag,
+          guildId: interaction.guildId || 'DM',
+        });
 
         await command.execute(client, interaction);
       }
@@ -40,7 +49,11 @@ export function interactionCreateEvent(client: SeraphimClient): void {
         await handleButtonInteraction(client, interaction);
       }
     } catch (error) {
-      logger.error('Error handling interaction:', error);
+      logger.error('Error handling interaction:', error, {
+        interactionType: interaction.type,
+        userId: interaction.user?.id,
+        guildId: interaction.guildId,
+      });
 
       const errorMessage = { content: 'An error occurred while processing your request.', ephemeral: true };
 
